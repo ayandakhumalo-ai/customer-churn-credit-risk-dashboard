@@ -26,17 +26,77 @@ DATA_PATH = os.path.join("data", "features_data.parquet")
 MODEL_DIR = "data"
 
 # ---------------------------------------------------------------------------
+# Auto-generate data if running on Streamlit Cloud (no pre-built files)
+# ---------------------------------------------------------------------------
+
+def _bootstrap_data():
+    """Run ETL + feature engineering if parquet files are missing."""
+    os.makedirs("data", exist_ok=True)
+    if not os.path.exists(DATA_PATH):
+        with st.spinner("First run: generating synthetic data and training models... (~30s)"):
+            from etl_pipeline import run_etl
+            from feature_engineering import build_features
+            run_etl(output_dir="data")
+            build_features(
+                master_parquet="data/master_data.parquet",
+                chat_csv="data/raw_chat_logs.csv",
+                output_dir="data",
+                use_ml_sentiment=True,
+            )
+
+        # Train models and save probability CSVs
+        with st.spinner("Training churn & credit risk models..."):
+            import numpy as np
+            import warnings
+            warnings.filterwarnings("ignore")
+
+            import pandas as pd
+            from sklearn.model_selection import train_test_split
+            from sklearn.ensemble import RandomForestClassifier
+            import xgboost as xgb
+            import joblib
+
+            df = pd.read_parquet(DATA_PATH)
+            from sklearn.preprocessing import LabelEncoder
+            df["region_enc"]  = LabelEncoder().fit_transform(df["region"])
+            df["product_enc"] = LabelEncoder().fit_transform(df["product_type"])
+
+            FEATURE_COLS = [c for c in [
+                "age", "region_enc", "product_enc",
+                "monthly_transaction_volume", "avg_transaction_value",
+                "days_since_last_txn", "loan_amount",
+                "late_payments_last_12m", "credit_utilization_ratio",
+                "chat_count", "complaint_flag", "sentiment_ratio",
+                "sentiment_score", "engagement_score",
+                "high_utilization", "frequent_complainer", "low_engagement",
+            ] if c in df.columns]
+
+            X = df[FEATURE_COLS]
+            for target, fname in [("churn_label", "churn"), ("default_label", "credit")]:
+                y = df[target]
+                X_tr, _, y_tr, _ = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+                model = xgb.XGBClassifier(
+                    n_estimators=100, max_depth=5, learning_rate=0.1,
+                    eval_metric="logloss", random_state=42, verbosity=0
+                )
+                model.fit(X_tr, y_tr)
+                proba = model.predict_proba(X)[:, 1]
+                col = "churn_probability" if fname == "churn" else "default_probability"
+                pd.DataFrame({"customer_id": df["customer_id"], col: np.round(proba, 4)}).to_csv(
+                    f"data/{fname}_probabilities.csv", index=False
+                )
+
+        st.success("Data ready! Loading dashboard...")
+        st.rerun()
+
+_bootstrap_data()
+
+# ---------------------------------------------------------------------------
 # Data loader (cached)
 # ---------------------------------------------------------------------------
 
 @st.cache_data
 def load_data() -> pd.DataFrame:
-    if not os.path.exists(DATA_PATH):
-        st.error(
-            "features_data.parquet not found. "
-            "Run: python etl_pipeline.py && python feature_engineering.py first."
-        )
-        st.stop()
     df = pd.read_parquet(DATA_PATH)
 
     # Load model predictions if available
