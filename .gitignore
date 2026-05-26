@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+data/*.parquet
+data/*.pkl
+data/*.json
+data/*.png
+*.ipynb_checkpoints/
+model_training_executed.ipynb

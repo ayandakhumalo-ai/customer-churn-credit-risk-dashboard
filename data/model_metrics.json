@@ -1,0 +1,46 @@
+{
+  "churn": {
+    "logistic_regression": {
+      "roc_auc": 1.0,
+      "precision": 0.9985,
+      "recall": 0.997,
+      "f1": 0.9978
+    },
+    "random_forest": {
+      "roc_auc": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "xgboost": {
+      "roc_auc": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  },
+  "credit": {
+    "logistic_regression": {
+      "roc_auc": 0.9853,
+      "precision": 0.9776,
+      "recall": 0.9679,
+      "f1": 0.9727
+    },
+    "random_forest": {
+      "roc_auc": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "xgboost": {
+      "roc_auc": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  },
+  "churn_rate_pct": 67.1,
+  "default_rate_pct": 70.1,
+  "high_risk_customers": 6709,
+  "n_customers": 10000
+}
