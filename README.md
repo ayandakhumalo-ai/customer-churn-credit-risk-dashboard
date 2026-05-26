@@ -1,7 +1,7 @@
 # Customer Churn & Credit Risk Dashboard
 ### Portfolio Project — Ayanda Blessing Khumalo
 
-**Role applied for:** Data Scientist – Data Monetisation, Bank Group  
+**Role:** Data Scientist – Data Monetisation 
 **Stack:** Python 3.10+, scikit-learn, XGBoost, Streamlit, Plotly, fpdf2
 
 ---
@@ -142,5 +142,4 @@ The dashboard opens automatically at `http://localhost:8501`.
 
 ---
 
-*Prepared for the Bank Group Data Monetisation role application.*  
 *Contact: ayanda.khumalo@aims-cameroon.org*
